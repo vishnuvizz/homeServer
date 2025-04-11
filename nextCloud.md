@@ -3,13 +3,12 @@
 ## 📦 Container Configuration
 
 ```bash
-pct create 105 local-lvm \
+pct create 105 local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst \
   --hostname nextcloud-docker \
   --cores 2 \
   --memory 4096 \
   --swap 512 \
   --rootfs local-lvm:30 \
-  --ostype debian \
   --net0 name=eth0,bridge=vmbr0,ip=192.168.0.61/24,gw=192.168.0.1 \
   --nameserver 192.168.0.51 \
   --unprivileged 0 \
