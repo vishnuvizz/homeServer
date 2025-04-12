@@ -57,7 +57,7 @@ ghcr.io/nextcloud-releases/all-in-one:latest
 
 
 ## Docker compose method
-- I used docker copose method as per this GitHub [issue](https://github.com/nextcloud/all-in-one/discussions/2845#discussioncomment-6423237)
+- I used docker copose method as per this GitHub [issue](https://github.com/nextcloud/all-in-one/discussions/2845#discussioncomment-6423237), its important to set `SKIP_DOMAIN_VALIDATION=true` as we run it behind cloudflare.
 
 ```docker compose
 version: "3.8"
