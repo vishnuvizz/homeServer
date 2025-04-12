@@ -36,7 +36,7 @@ apt update && apt install -y curl docker.io docker-compose
 
 ---
 
-## ☁️ Install Nextcloud All-in-One
+## ☁️ Install Nextcloud All-in-One (skiped)
 
 ```bash
 # For Linux and without a web server or reverse proxy (like Apache, Nginx, Caddy, Cloudflare Tunnel and else) already in place:
@@ -50,6 +50,39 @@ sudo docker run \
 --publish 8443:8443 \
 --volume nextcloud_aio_mastercontainer:/mnt/docker-aio-config \
 --volume /var/run/docker.sock:/var/run/docker.sock:ro \
-ghcr.io/nextcloud-releases/all-in-one:latest```
+ghcr.io/nextcloud-releases/all-in-one:latest
+```
 
 **Note**: this command is taken from NextCloud's offical website[https://github.com/nextcloud/all-in-one]
+
+
+## Docker compose method
+- I used docker copose method as per this GitHub [issue](https://github.com/nextcloud/all-in-one/discussions/2845#discussioncomment-6423237)
+
+```docker compose
+version: "3.8"
+
+services:
+  nextcloud:
+    image: ghcr.io/nextcloud-releases/all-in-one:latest
+    restart: always
+    container_name: nextcloud-aio-mastercontainer 
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config 
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+    ports:
+      - 80:80 
+      - 8080:8080
+    environment: 
+      - APACHE_PORT=11000 
+      - APACHE_IP_BINDING=0.0.0.0
+      - SKIP_DOMAIN_VALIDATION=true
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
+```
+
+
+- start containers
+  `docker-compose up -d`
