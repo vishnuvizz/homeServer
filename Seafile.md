@@ -59,12 +59,29 @@ http:
 
 - point traefik config with command `traefik --configFile=/etc/traefik/traefik.yml`
 
+## NFS in seafile for storage
+- I took the route where, nfs is mounted to proxmox and then use it in lxc.
+- Below is proxmox fstab entry for reference.
+- ```
+  # <file system> <mount point> <type> <options> <dump> <pass>
+/dev/pve/root / ext4 errors=remount-ro 0 1
+UUID=35F9-32DE /boot/efi vfat defaults 0 1
+/dev/pve/swap none swap sw 0 0
+proc /proc proc defaults 0 0
+#truenas.local:/mnt/hdd2TBdisk/MediaFiles /mnt/nfs_mediaFiles nfs vers=4.1,_netdev 0 0
+192.168.0.60:/mnt/hdd2TBdisk/MediaFiles /mnt/nfs_mediaFiles nfs vers=4.1,_netdev 0 0
+192.168.0.60:/mnt/hdd2TBdisk/PhotosAndVideos /mnt/photos nfs vers=4.1,_netdev 0 0
+192.168.0.60:/mnt/hdd2TBdisk/Files /mnt/files nfs vers=4.1,_netdev 0 0
+192.168.0.60:/mnt/hdd2TBdisk/SeaFile  /mnt/seafile_nfs  nfs4  defaults,_netdev,noatime  0  0
+  ```
+
 
 ## Seafile lxc config
 
 - open file - `root@proxmox:/etc/pve/lxc# cat 113.conf`
 - 113.conf
 ```
+root@proxmox:/etc/pve/lxc# cat 113.conf
 #<div align='center'>
 #  <a href='https%3A//Helper-Scripts.com' target='_blank' rel='noopener noreferrer'>
 #    <img src='https%3A//raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png' alt='Logo' style='width%3A81px;height%3A112px;'/>
@@ -91,11 +108,13 @@ http:
 #    <a href='https%3A//github.com/community-scripts/ProxmoxVE/issues' target='_blank' rel='noopener noreferrer' style='text-decoration%3A none; color%3A #00617f;'>Issues</a>
 #  </span>
 #</div>
+#lxc.mount.entry%3A 192.168.0.60%3A/mnt/hdd2TBdisk/SeaFile /mnt/seafile nfs defaults 0 0
 arch: amd64
 cores: 2
 features: keyctl=1,nesting=1
 hostname: seafile
 memory: 2048
+mp0: /mnt/seafile_nfs,mp=/mnt/seafile
 nameserver: 192.168.0.51
 net0: name=eth0,bridge=vmbr0,gw=192.168.0.1,hwaddr=BC:24:11:D7:7C:29,ip=192.168.0.63/24,type=veth
 onboot: 1
@@ -104,5 +123,27 @@ rootfs: local-lvm:vm-113-disk-0,size=20G
 swap: 512
 tags: community-script;documents;seafile
 unprivileged: 1
-lxc.mount.entry: 192.168.0.60:/mnt/hdd2TBdisk/SeaFile /mnt/seafile nfs defaults 0 0
+root@proxmox:/etc/pve/lxc#
 ```
+
+## Initial login
+- username and pass for initial login can be found in lxc home path
+
+
+
+## Configure Seafile
+- Run command from home of lxc to enable domain - `./domain.sh seafile.vishmohomes.click`
+- adjust external storage as per our need
+```
+root@seafile:~# cat external-storage.sh
+#!/bin/bash
+STORAGE_DIR="/mnt/seafile"
+
+# Move the seafile-data folder to external storage
+mv /opt/seafile/seafile-data $STORAGE_DIR/seafile-data
+
+# Create a symlink for access
+ln -s $STORAGE_DIR/seafile-data /opt/seafile/seafile-data
+root@seafile:~#
+```
+
