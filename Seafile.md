@@ -40,21 +40,23 @@ certificatesResolvers:
 
 ```
 root@traefik:/etc/traefik# cat dynamic.yml
+middlewares:
+  seafile-headers:
+    headers:
+      customRequestHeaders:
+        X-Forwarded-Proto: "https"
+
 http:
   routers:
     seafile:
       rule: "Host(`seafile.vishmohomes.click`)"
       entryPoints:
         - websecure
-      service: seafile-svc
       tls:
-        certResolver: cloudflare
-
-  services:
-    seafile-svc:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.0.63:8000"
+        certResolver: myresolver
+      service: seafile
+      middlewares:
+        - seafile-headers
 ```
 
 - point traefik config with command `traefik --configFile=/etc/traefik/traefik.yml`
@@ -145,5 +147,41 @@ mv /opt/seafile/seafile-data $STORAGE_DIR/seafile-data
 # Create a symlink for access
 ln -s $STORAGE_DIR/seafile-data /opt/seafile/seafile-data
 root@seafile:~#
+```
+
+## Adjusted seafile config
+- `/opt/seafile/conf/seahub_settings.py`
+
+```
+# -*- coding: utf-8 -*-
+SECRET_KEY = "pp106m27cne!#wg^n#xlwp%xrs(k^!ab@=r(9)vsz4yeo4a6(6"
+#SERVICE_URL = "seafile.vishmohomes.click"
+SERVICE_URL = 'https://seafile.vishmohomes.click'
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'seahub_db',
+        'USER': 'seafile',
+        'PASSWORD': '0xts1viRuN3C2',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {'charset': 'utf8mb4'},
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_pylibmc.memcached.PyLibMCCache',
+        'LOCATION': '127.0.0.1:11211',
+    },
+}
+
+FILE_SERVER_ROOT = "seafile.vishmohomes.click/seafhttp"
+CSRF_TRUSTED_ORIGINS = ["seafile.vishmohomes.click/"]
+ALLOWED_HOSTS = [".seafile.vishmohomes.click"]
+CSRF_TRUSTED_ORIGINS = ['http://192.168.0.63/']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ```
 
